@@ -1,7 +1,3 @@
-Absolutely! Here’s a **README.md** template for your character localization project, tailored to your workflow and competition requirements:
-
----
-
 # Character Localization
 
 This project implements a deep learning pipeline for **character localization** in handwritten math images. The goal is to detect and localize all character bounding boxes in each image, as required for the competition.
@@ -99,11 +95,3 @@ generate_competition_csv(
 )
 ```
 - The CSV will have columns: `image_id, x, y, width, height` as required by the competition.
-
----
-
-## Citation
-
-If you use this codebase, please cite the competition or your own work as appropriate.
-
----
