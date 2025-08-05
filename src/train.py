@@ -76,7 +76,7 @@ def main():
     parser.add_argument("--weight-decay", type=float, default=0.0005)
     parser.add_argument("--num-classes", type=int, default=2)  # background + character
     parser.add_argument("--device", type=str, default="cuda")
-    parser.add_argument("--save-path", type=str, default="checkpoints")
+    parser.add_argument("--save-path", type=str, default="results/checkpoints")
     parser.add_argument("--print-freq", type=int, default=20)
     args = parser.parse_args()
 

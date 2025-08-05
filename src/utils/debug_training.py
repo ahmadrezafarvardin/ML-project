@@ -1,8 +1,11 @@
-# src/debug_training.py
+# src/utils/debug_training.py
 import torch
-from models import FasterRCNN
-from data import CharacterDetectionDataset, collate_fn
+from src.models import FasterRCNN
+from src.data import CharacterDetectionDataset, collate_fn
 from torch.utils.data import DataLoader
+import sys
+from pathlib import Path
+
 import warnings
 
 warnings.filterwarnings("ignore", message=".*iCCP.*")
@@ -13,9 +16,18 @@ def debug_model_training():
 
     # Load model
     model = FasterRCNN(num_classes=2)
+    checkpoint_path = (
+        "results/checkpoints/best_model.pth"  # or your actual checkpoint path
+    )
+    if Path(checkpoint_path).exists():
+        print(f"Loading checkpoint from {checkpoint_path}")
+        checkpoint = torch.load(checkpoint_path, map_location=device)
+        model.load_state_dict(checkpoint["model_state_dict"])
+    else:
+        print(f"WARNING: Checkpoint {checkpoint_path} not found. Using random weights.")
+
     model.to(device)
     model.train()  # Set to training mode
-
     # Load one batch
     dataset = CharacterDetectionDataset("dataset", split="train")
     loader = DataLoader(dataset, batch_size=1, shuffle=False, collate_fn=collate_fn)
