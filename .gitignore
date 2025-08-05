@@ -11,6 +11,7 @@ __pycache__/
 # Datasets and results (optional, if you don't want to track them)
 dataset/
 results/
+checkpoints/
 
 # OS files
 .DS_Store
@@ -19,12 +20,6 @@ Thumbs.db
 # Environment files
 .env
 *.env
-dataset_yolo/
-
-# Data and generated files
-dataset/
-dataset_yolo/
-results/
 
 # Training outputs
 *.pt
@@ -32,4 +27,5 @@ results/
 *.onnx
 *.txt
 *.csv
+*.png
 
