@@ -14,9 +14,9 @@ class ResNetBackbone(nn.Module):
 
         # Load ResNet model
         if backbone_name == "resnet50":
-            resnet = models.resnet50(weights=None)  # Updated to use weights parameter
+            resnet = models.resnet50(weights="IMAGENET1K_V1" if pretrained else None)  # Updated to use weights parameter
         elif backbone_name == "resnet101":
-            resnet = models.resnet101(weights=None)
+            resnet = models.resnet101(weights="IMAGENET1K_V1" if pretrained else None)
         else:
             raise ValueError(f"Unknown backbone: {backbone_name}")
 

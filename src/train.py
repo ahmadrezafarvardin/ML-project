@@ -9,6 +9,7 @@ from pathlib import Path
 from models import FasterRCNN
 from data import CharacterDetectionDataset, collate_fn
 import warnings
+
 warnings.filterwarnings("ignore", message=".*iCCP.*")
 
 
@@ -78,6 +79,9 @@ def main():
     parser.add_argument("--device", type=str, default="cuda")
     parser.add_argument("--save-path", type=str, default="results/checkpoints")
     parser.add_argument("--print-freq", type=int, default=20)
+    parser.add_argument(
+        "--pretrained-backbone", action="store_true", help="Use pretrained backbone"
+    )
     args = parser.parse_args()
 
     # Create save directory
@@ -111,7 +115,7 @@ def main():
     model = FasterRCNN(
         num_classes=args.num_classes,
         backbone_name="resnet50",
-        pretrained_backbone=False,  # As requested, no pretrained models
+        pretrained_backbone=args.pretrained_backbone,  # for no pretrained models set False
         rpn_anchor_sizes=(8, 16, 32, 64, 128),
     )
     model.to(device)

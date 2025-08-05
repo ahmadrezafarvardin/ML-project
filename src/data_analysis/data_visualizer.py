@@ -25,7 +25,7 @@ class DataVisualizer:
             colors.append(tuple(int(c * 255) for c in rgb))
         return colors
 
-    def visualize_samples(self, split: str = "train", n_samples: int = 10):
+    def visualize_samples(self, split: str = "train", n_samples: int = 1000):
         """Visualize random samples with bounding boxes"""
         print(f"\nVisualizing {n_samples} samples from {split}...")
 
@@ -223,3 +223,38 @@ class DataVisualizer:
             bbox_inches="tight",
         )
         plt.close()
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Visualize dataset annotations")
+    parser.add_argument(
+        "--dataset", type=str, default="dataset", help="Path to dataset root"
+    )
+    parser.add_argument(
+        "--split",
+        type=str,
+        default="train",
+        choices=["train", "valid"],
+        help="Dataset split",
+    )
+    parser.add_argument(
+        "--all", action="store_true", help="Visualize all images in the split"
+    )
+    parser.add_argument(
+        "--n_samples",
+        type=int,
+        default=20,
+        help="Number of random samples to visualize (ignored if --all)",
+    )
+
+    args = parser.parse_args()
+
+    visualizer = DataVisualizer(args.dataset)
+    if args.all:
+        visualizer.visualize_samples(
+            split=args.split, n_samples=1000000
+        )  # Large number to cover all
+    else:
+        visualizer.visualize_samples(split=args.split, n_samples=args.n_samples)
