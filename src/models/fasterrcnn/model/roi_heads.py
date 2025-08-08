@@ -1,4 +1,4 @@
-# src/models/roi_heads.py
+# src/models/fasterrcnn/roi_heads.py
 import torch
 import torch.nn as nn
 import torch.nn.functional as F

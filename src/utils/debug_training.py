@@ -1,6 +1,6 @@
 # src/utils/debug_training.py
 import torch
-from src.models import FasterRCNN
+from src.models.fasterrcnn import FasterRCNN
 from src.data import CharacterDetectionDataset, collate_fn
 from torch.utils.data import DataLoader
 import sys
@@ -16,9 +16,7 @@ def debug_model_training():
 
     # Load model
     model = FasterRCNN(num_classes=2)
-    checkpoint_path = (
-        "results/checkpoints/best_model.pth"  # or your actual checkpoint path
-    )
+    checkpoint_path = "results/fasterrcnn/checkpoints/best_model.pth"  # or your actual checkpoint path
     if Path(checkpoint_path).exists():
         print(f"Loading checkpoint from {checkpoint_path}")
         checkpoint = torch.load(checkpoint_path, map_location=device)

@@ -1,4 +1,4 @@
-# src/models/faster_rcnn.py
+# src/models/fasterrcnn/faster_rcnn.py
 import torch
 import torch.nn as nn
 from torchvision.models.detection.image_list import ImageList

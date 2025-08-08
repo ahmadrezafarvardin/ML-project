@@ -1,4 +1,4 @@
-# src/inference.py
+# src/models/fasterrcnn/inference.py
 import sys
 from pathlib import Path
 
@@ -9,7 +9,7 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-from models import FasterRCNN
+from models.fasterrcnn.model.faster_rcnn import FasterRCNN
 from data import CharacterDetectionDataset
 from torchvision.ops import nms, box_iou
 import random
@@ -22,7 +22,7 @@ import json
 class InferenceEngine:
     def __init__(
         self,
-        checkpoint_path="results/checkpoints/best_model.pth",
+        checkpoint_path="results/fasterrcnn/checkpoints/best_model.pth",
         nms_threshold=0.3,
         score_threshold=0.6,
     ):
@@ -208,7 +208,7 @@ class InferenceEngine:
         return metrics
 
     def visualize_results(
-        self, dataset, num_samples=12, save_path="results/visualizations"
+        self, dataset, num_samples=12, save_path="results/fasterrcnn/visualizations"
     ):
         """Visualize detection results"""
         save_path = Path(save_path)
@@ -284,7 +284,7 @@ class InferenceEngine:
 
         print(f"Visualization saved to: {save_path / 'detection_results.png'}")
 
-    def plot_confusion_matrix(self, cm, save_path="results/evaluation"):
+    def plot_confusion_matrix(self, cm, save_path="results/fasterrcnn/evaluation"):
         """Plot confusion matrix"""
         save_path = Path(save_path)
         save_path.mkdir(parents=True, exist_ok=True)
@@ -316,7 +316,7 @@ def main():
 
     # Initialize inference engine with best settings
     engine = InferenceEngine(
-        checkpoint_path="results/checkpoints/best_model.pth",
+        checkpoint_path="results/fasterrcnn/checkpoints/best_model.pth",
         nms_threshold=0.3,  # Best practice from analysis
         score_threshold=0.6,  # Best practice from analysis
     )
@@ -345,7 +345,7 @@ def main():
     print(f"False Negatives: {metrics['false_negatives']}")
 
     # Save metrics
-    output_dir = Path("results/evaluation")
+    output_dir = Path("results/fasterrcnn/evaluation")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     with open(output_dir / "metrics.json", "w") as f:
@@ -393,7 +393,7 @@ def main():
     print(f"- {output_dir}/metrics.json")
     print(f"- {output_dir}/confusion_matrix.png")
     print(f"- {output_dir}/test_predictions.json")
-    print(f"- results/visualizations/detection_results.png")
+    print(f"- results/fasterrcnn/visualizations/detection_results.png")
 
 
 if __name__ == "__main__":

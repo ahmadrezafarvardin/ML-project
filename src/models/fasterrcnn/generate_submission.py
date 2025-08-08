@@ -1,4 +1,4 @@
-# src/generate_submission.py
+# src/models/fasterrcnn/generate_submission.py
 from inference import InferenceEngine
 import sys
 from pathlib import Path
@@ -11,11 +11,11 @@ import csv
 
 
 def generate_competition_csv(
-    checkpoint_path="results/checkpoints/best_model.pth",
+    checkpoint_path="results/fasterrcnn/checkpoints/best_model.pth",
     nms_threshold=0.3,
     score_threshold=0.6,
     test_dir="dataset/test/images",
-    output_csv="results/output.csv",
+    output_csv="results/fasterrcnn/output.csv",
 ):
     engine = InferenceEngine(checkpoint_path, nms_threshold, score_threshold)
     test_dir = Path(test_dir)
@@ -48,9 +48,9 @@ def generate_competition_csv(
 
 if __name__ == "__main__":
     generate_competition_csv(
-        checkpoint_path="results/checkpoints/best_model.pth",
+        checkpoint_path="results/fasterrcnn/checkpoints/best_model.pth",
         nms_threshold=0.3,
         score_threshold=0.6,
         test_dir="dataset/test/images",
-        output_csv="results/output.csv",
+        output_csv="results/fasterrcnn/output.csv",
     )

@@ -1,4 +1,4 @@
-# src/inference_with_better_nms.py
+# src/utils/inference_with_better_nms.py
 import sys
 from pathlib import Path
 
@@ -9,7 +9,7 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-from models import FasterRCNN
+from models.fasterrcnn.model.faster_rcnn import FasterRCNN
 from data import CharacterDetectionDataset
 from torchvision.ops import nms
 import random
@@ -48,7 +48,7 @@ def apply_class_specific_nms(boxes, scores, labels, nms_threshold=0.3):
 
 
 def visualize_before_after_nms(
-    checkpoint_path="results/checkpoints/best_model.pth",
+    checkpoint_path="results/fasterrcnn/checkpoints/best_model.pth",
     num_samples=4,
     nms_thresholds=[0.5, 0.3, 0.1],
 ):
@@ -185,7 +185,7 @@ def visualize_before_after_nms(
 
 
 def improved_inference(
-    checkpoint_path="results/checkpoints/best_model.pth",
+    checkpoint_path="results/fasterrcnn/checkpoints/best_model.pth",
     num_samples=12,
     split="valid",
     score_threshold=0.5,

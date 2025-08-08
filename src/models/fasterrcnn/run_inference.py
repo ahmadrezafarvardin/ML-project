@@ -1,4 +1,4 @@
-# src/run_inference.py
+# src/models/fasterrcnn/run_inference.py
 import sys
 from pathlib import Path
 
@@ -15,7 +15,7 @@ import argparse
 
 def run_single_image_inference(
     image_path,
-    checkpoint_path="results/checkpoints/best_model.pth",
+    checkpoint_path="results/fasterrcnn/checkpoints/best_model.pth",
     nms_threshold=0.3,
     score_threshold=0.6,
     save_result=True,
@@ -60,7 +60,7 @@ def run_single_image_inference(
 
     if save_result:
         output_path = (
-            Path("results/visualizations") / f"inference_{Path(image_path).stem}.png"
+            Path("results/fasterrcnn/visualizations") / f"inference_{Path(image_path).stem}.png"
         )
         output_path.parent.mkdir(parents=True, exist_ok=True)
         plt.savefig(output_path, dpi=150, bbox_inches="tight")
@@ -77,7 +77,7 @@ def main():
     parser.add_argument(
         "--checkpoint",
         type=str,
-        default="results/checkpoints/best_model.pth",
+        default="results/fasterrcnn/checkpoints/best_model.pth",
         help="Path to model checkpoint",
     )
     parser.add_argument("--nms", type=float, default=0.3, help="NMS threshold")

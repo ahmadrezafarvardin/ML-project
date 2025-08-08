@@ -1,4 +1,4 @@
-# src/models/backbone.py
+# src/models/fasterrcnn/backbone.py
 import torch
 import torch.nn as nn
 import torchvision.models as models
@@ -14,7 +14,9 @@ class ResNetBackbone(nn.Module):
 
         # Load ResNet model
         if backbone_name == "resnet50":
-            resnet = models.resnet50(weights="IMAGENET1K_V1" if pretrained else None)  # Updated to use weights parameter
+            resnet = models.resnet50(
+                weights="IMAGENET1K_V1" if pretrained else None
+            )  # Updated to use weights parameter
         elif backbone_name == "resnet101":
             resnet = models.resnet101(weights="IMAGENET1K_V1" if pretrained else None)
         else:

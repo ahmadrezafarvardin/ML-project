@@ -1,4 +1,4 @@
-# src/evaluation_summary.py
+# src/models/fasterrcnn/evaluation_summary.py
 import json
 from pathlib import Path
 import matplotlib.pyplot as plt
@@ -9,7 +9,7 @@ def create_evaluation_summary():
     """Create a comprehensive evaluation summary"""
 
     # Load metrics
-    metrics_path = Path("results/evaluation/metrics.json")
+    metrics_path = Path("results/fasterrcnn/evaluation/metrics.json")
     if not metrics_path.exists():
         print("No metrics found. Run inference.py first.")
         return
@@ -153,7 +153,7 @@ def create_evaluation_summary():
     plt.tight_layout()
 
     # Save summary
-    output_path = Path("results/evaluation/evaluation_summary.png")
+    output_path = Path("results/fasterrcnn/evaluation/evaluation_summary.png")
     plt.savefig(output_path, dpi=150, bbox_inches="tight")
     plt.show()
 

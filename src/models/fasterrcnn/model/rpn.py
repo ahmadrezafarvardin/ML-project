@@ -1,4 +1,4 @@
-# src/models/rpn.py
+# src/models/fasterrcnn/rpn.py
 import torch
 import torch.nn as nn
 import torch.nn.functional as F

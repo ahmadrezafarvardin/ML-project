@@ -1,10 +1,10 @@
-Absolutely! Here’s a **README.md** template for your character localization project, tailored to your workflow and competition requirements:
+Absolutely! Here’s a **README.md** template for your character models project, tailored to your workflow and competition requirements:
 
 ---
 
-# Character Localization
+# Character models
 
-This project implements a deep learning pipeline for **character localization** in handwritten math images. The goal is to detect and localize all character bounding boxes in each image, as required for the competition.
+This project implements a deep learning pipeline for **character models** in handwritten math images. The goal is to detect and localize all character bounding boxes in each image, as required for the competition.
 
 ---
 
@@ -51,11 +51,13 @@ dataset/
 ## Training
 
 **Train with a pretrained backbone (recommended):**
+
 ```bash
 python src/train.py --data-path dataset --epochs 30 --batch-size 1 --lr 0.0005 --save-path results/checkpoints --pretrained-backbone
 ```
 
 **Train from scratch:**
+
 ```bash
 python src/train.py --data-path dataset --epochs 30 --batch-size 1 --lr 0.0005 --save-path results/checkpoints
 ```
@@ -65,9 +67,11 @@ python src/train.py --data-path dataset --epochs 30 --batch-size 1 --lr 0.0005 -
 ## Evaluation
 
 **Evaluate and visualize results:**
+
 ```bash
 python src/inference.py
 ```
+
 - Results and metrics will be saved in `results/evaluation/` and `results/visualizations/`.
 
 ---
@@ -75,10 +79,12 @@ python src/inference.py
 ## Data Visualization
 
 **Visualize all training or validation samples with bounding boxes:**
+
 ```bash
 python src/data_analysis/data_visualizer.py --split train --all
 python src/data_analysis/data_visualizer.py --split valid --all
 ```
+
 - Annotated images will be saved in `results/data_analysis/sample_visualizations/`.
 
 ---
@@ -86,18 +92,20 @@ python src/data_analysis/data_visualizer.py --split valid --all
 ## Competition Submission
 
 **Generate the required CSV for submission:**
+
 ```python
 # Example function call (add to a script or run in Python shell)
 from src.inference import generate_competition_csv
 
 generate_competition_csv(
-    checkpoint_path="results/checkpoints/best_model.pth",
+    checkpoint_path="results/fasterrcnn/checkpoints/best_model.pth",
     nms_threshold=0.3,
     score_threshold=0.6,
     test_dir="dataset/test/images",
     output_csv="output.csv"
 )
 ```
+
 - The CSV will have columns: `image_id, x, y, width, height` as required by the competition.
 
 ---

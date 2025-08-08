@@ -5,7 +5,7 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.append(str(Path(__file__).parent.parent))
 
-from models import FasterRCNN
+from models.fasterrcnn.model.faster_rcnn import FasterRCNN
 
 
 def check_model_settings():

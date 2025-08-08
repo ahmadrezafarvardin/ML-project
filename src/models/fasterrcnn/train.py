@@ -1,4 +1,4 @@
-# src/train.py
+# src/models/fasterrcnn/train.py
 import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader
@@ -6,8 +6,8 @@ from tqdm import tqdm
 import argparse
 from pathlib import Path
 
-from models import FasterRCNN
-from data import CharacterDetectionDataset, collate_fn
+from src.models.fasterrcnn.model.faster_rcnn import FasterRCNN
+from src.data import CharacterDetectionDataset, collate_fn
 import warnings
 
 warnings.filterwarnings("ignore", message=".*iCCP.*")
@@ -77,7 +77,9 @@ def main():
     parser.add_argument("--weight-decay", type=float, default=0.0005)
     parser.add_argument("--num-classes", type=int, default=2)  # background + character
     parser.add_argument("--device", type=str, default="cuda")
-    parser.add_argument("--save-path", type=str, default="results/checkpoints")
+    parser.add_argument(
+        "--save-path", type=str, default="results/fasterrcnn/checkpoints"
+    )
     parser.add_argument("--print-freq", type=int, default=20)
     parser.add_argument(
         "--pretrained-backbone", action="store_true", help="Use pretrained backbone"

@@ -1,4 +1,4 @@
-# src/models/__init__.py
+# src/models/fasterrcnn/model/__init__.py
 from .faster_rcnn import FasterRCNN
 from .backbone import ResNetBackbone
 from .rpn import RegionProposalNetwork

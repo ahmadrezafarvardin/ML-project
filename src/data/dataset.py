@@ -21,8 +21,6 @@ class CharacterDetectionDataset(Dataset):
         # Get all image files
         self.image_files = sorted(list(self.image_dir.glob("*.png")))
 
-        # Since all boxes have the same class, we'll use a single class
-        # You can modify this when you have proper labels
         self.class_names = ["background", "character"]  # 0 is background
 
     def __len__(self):
@@ -53,8 +51,6 @@ class CharacterDetectionDataset(Dataset):
             # Convert to [x1, y1, x2, y2] format
             boxes.append([x, y, x + w, y + h])
 
-            # For now, all characters get the same label
-            # You should replace this with actual character labels
             labels.append(1)  # 1 for 'character' class
 
         # Convert to tensors
