@@ -10,6 +10,7 @@ from sklearn.metrics import (
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 from typing import Optional, Tuple, List, Dict
+import os
 import warnings
 
 warnings.filterwarnings("ignore")
@@ -267,8 +268,9 @@ class CharacterClusterer:
             ax2.grid(True, alpha=0.3)
 
             plt.tight_layout()
+            os.makedirs("results/clustering/clustering_yolo", exist_ok=True)
             plt.savefig(
-                "results/clustering_yolo/elbow_analysis.png",
+                "results/clustering/clustering_yolo/elbow_analysis.png",
                 dpi=300,
                 bbox_inches="tight",
             )

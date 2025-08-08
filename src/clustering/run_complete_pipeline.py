@@ -9,6 +9,7 @@ from pathlib import Path
 import numpy as np
 import json
 import argparse
+from sklearn.decomposition import PCA
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).parent.parent.parent
@@ -43,8 +44,8 @@ def convert_to_serializable(obj):
 def run_complete_pipeline(
     model_path=None,
     dataset_path="dataset",
-    output_dir="results/clustering_complete",
-    max_images=200,
+    output_dir="results/clustering/clustering_complete",
+    max_images=500,
     conf_threshold=0.25,
 ):
     """
@@ -88,9 +89,21 @@ def run_complete_pipeline(
         feature_list.append(features["statistical"])
         feature_names.append("statistical")
 
+    if "cnn" in features and features["cnn"].size > 0:
+        feature_list.append(features["cnn"])
+        feature_names.append("cnn")
+
     combined_features = np.hstack(feature_list)
     print(f"Combined features shape: {combined_features.shape}")
     print(f"Using features: {', '.join(feature_names)}")
+
+    # Apply PCA to reduce dimensionality
+    n_pca_components = min(10, combined_features.shape[1])  # or set to 50 or 100
+    print(f"Reducing features to {n_pca_components} dimensions using PCA...")
+    pca = PCA(n_components=n_pca_components, random_state=42)
+
+    reduced_features = pca.fit_transform(combined_features)
+    print(f"Reduced features shape: {reduced_features.shape}")
 
     # Step 3: Find optimal number of clusters
     print("\n" + "=" * 60)
@@ -101,7 +114,7 @@ def run_complete_pipeline(
 
     # Use elbow method
     elbow_results = clusterer.find_optimal_clusters_elbow(
-        combined_features, k_range=range(5, 21), plot=True
+        reduced_features, k_range=range(5, 21), plot=True
     )
 
     optimal_k = elbow_results["optimal_k_silhouette"]
@@ -131,56 +144,69 @@ def run_complete_pipeline(
 
     # Method 1: K-Means
     print("\n--- K-Means Clustering ---")
-    kmeans_labels = clusterer.kmeans_clustering(combined_features, n_clusters=optimal_k)
+    kmeans_labels = clusterer.kmeans_clustering(
+        reduced_features, n_clusters=16
+    )  # 16 from previous knowledge, use optimal_k instead
     kmeans_metrics = evaluator.evaluate_all_metrics(
-        combined_features, kmeans_labels, "K-Means"
+        reduced_features, kmeans_labels, "K-Means"
     )
     evaluator.print_evaluation_summary(kmeans_metrics)
 
-    if len(sample_images) >= len(kmeans_labels):
-        visualizer.create_cluster_report(
-            combined_features,
-            kmeans_labels,
-            sample_images[: len(kmeans_labels)],
-            "kmeans",
-        )
+    visualizer.create_cluster_report(
+        reduced_features,
+        kmeans_labels,
+        sample_images[: len(kmeans_labels)],
+        "kmeans",
+    )
+
+    # n = min(len(sample_images), len(kmeans_labels))
+    # visualizer.create_cluster_report(
+    #     reduced_features[:n],
+    #     kmeans_labels[:n],
+    #     sample_images[:n],
+    #     "kmeans",
+    # )
+    # visualizer.plot_cluster_samples(
+    #     sample_images[:n],
+    #     kmeans_labels[:n],
+    #     n_samples_per_cluster=10,
+    #     save_name="kmeans_cluster_samples.png",
+    # )
 
     # Method 2: DBSCAN
     print("\n--- DBSCAN Clustering ---")
-    dbscan_labels = clusterer.dbscan_clustering(combined_features, auto_eps=True)
+    dbscan_labels = clusterer.dbscan_clustering(reduced_features, auto_eps=True)
     dbscan_metrics = evaluator.evaluate_all_metrics(
-        combined_features, dbscan_labels, "DBSCAN"
+        reduced_features, dbscan_labels, "DBSCAN"
     )
     evaluator.print_evaluation_summary(dbscan_metrics)
 
-    if len(sample_images) >= len(dbscan_labels):
-        visualizer.create_cluster_report(
-            combined_features,
-            dbscan_labels,
-            sample_images[: len(dbscan_labels)],
-            "dbscan",
-        )
+    visualizer.create_cluster_report(
+        reduced_features,
+        dbscan_labels,
+        sample_images[: len(dbscan_labels)],
+        "dbscan",
+    )
 
     # Method 3: Hierarchical
     print("\n--- Hierarchical Clustering ---")
     hier_labels = clusterer.hierarchical_clustering(
-        combined_features, n_clusters=optimal_k
+        reduced_features, n_clusters=optimal_k
     )
     hier_metrics = evaluator.evaluate_all_metrics(
-        combined_features, hier_labels, "Hierarchical"
+        reduced_features, hier_labels, "Hierarchical"
     )
     evaluator.print_evaluation_summary(hier_metrics)
 
-    if len(sample_images) >= len(hier_labels):
-        visualizer.create_cluster_report(
-            combined_features,
-            hier_labels,
-            sample_images[: len(hier_labels)],
-            "hierarchical",
-        )
+    visualizer.create_cluster_report(
+        reduced_features,
+        hier_labels,
+        sample_images[: len(hier_labels)],
+        "hierarchical",
+    )
 
     # Plot dendrogram for hierarchical
-    visualizer.plot_dendrogram(combined_features)
+    visualizer.plot_dendrogram(reduced_features)
 
     # Step 5: Compare methods
     print("\n" + "=" * 60)
@@ -191,31 +217,12 @@ def run_complete_pipeline(
         save_path=os.path.join(output_dir, "methods_comparison.png")
     )
 
-    # # Save final results
-    # final_results = {
-    #     "feature_extraction": {
-    #         "n_images_processed": metadata["num_images"],
-    #         "n_characters_extracted": metadata["num_characters"],
-    #         "feature_types": feature_names,
-    #         "combined_feature_shape": combined_features.shape,
-    #     },
-    #     "optimal_clusters": {
-    #         "elbow_method": elbow_results["optimal_k_elbow"],
-    #         "silhouette_method": optimal_k,
-    #     },
-    #     "clustering_results": {
-    #         "kmeans": kmeans_metrics,
-    #         "dbscan": dbscan_metrics,
-    #         "hierarchical": hier_metrics,
-    #     },
-    # }
-    # Save final results - convert numpy types to native Python types
     final_results = {
         "feature_extraction": {
             "n_images_processed": int(metadata["num_images"]),
             "n_characters_extracted": int(metadata["num_characters"]),
             "feature_types": feature_names,
-            "combined_feature_shape": [int(x) for x in combined_features.shape],
+            "combined_feature_shape": [int(x) for x in reduced_features.shape],
         },
         "optimal_clusters": {
             "elbow_method": int(elbow_results["optimal_k_elbow"]),
@@ -270,13 +277,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--output",
         type=str,
-        default="results/clustering_complete",
+        default="results/clustering/clustering_complete",
         help="Output directory",
     )
     parser.add_argument(
         "--max-images",
         type=int,
-        default=200,
+        default=500,
         help="Maximum number of images to process",
     )
     parser.add_argument(
@@ -287,9 +294,7 @@ if __name__ == "__main__":
 
     # Use best YOLO weights if available and not specified
     if args.model is None:
-        best_weights = Path(
-            "results/yolo_runs/detect/character_detection/weights/best.pt"
-        )
+        best_weights = Path("results/yolo/detect/character_detection2/weights/best.pt")
         if best_weights.exists():
             args.model = str(best_weights)
             print(f"Using best YOLO weights: {args.model}")

@@ -417,7 +417,7 @@ def extract_features_from_dataset_yolo(
     character_metadata = []
 
     # Get image files
-    for split in ["train", "val"]:
+    for split in ["train", "valid"]:
         split_dir = os.path.join(dataset_path, split, "images")
         if os.path.exists(split_dir):
             for img_file in sorted(os.listdir(split_dir)):
@@ -500,7 +500,7 @@ def extract_features_from_dataset_yolo(
     sample_dir = os.path.join(output_dir, "sample_characters_yolo")
     os.makedirs(sample_dir, exist_ok=True)
 
-    num_samples = min(50, len(all_characters))
+    num_samples = min(500, len(all_characters))
     if num_samples > 0:
         indices = np.random.choice(len(all_characters), num_samples, replace=False)
 
@@ -518,19 +518,19 @@ if __name__ == "__main__":
     # Example usage with YOLO
 
     # Option 1: Use trained YOLO model
-    model_path = "results/yolo_runs/detect/character_detection/weights/best.pt"
+    model_path = "results/yolo/detect/character_detection2/weights/best.pt"
 
     # Option 2: Use default pretrained model
     # model_path = None
 
     dataset_path = "dataset"
-    output_dir = "results/clustering"
+    output_dir = "results/clustering/feature_extraction"
 
     # Extract features
     extract_features_from_dataset_yolo(
         model_path=model_path,
         dataset_path=dataset_path,
         output_dir=output_dir,
-        max_images=100,  # Process first 100 images
+        max_images=None,  # Process first 300 images (none for all)
         conf_threshold=0.25,  # YOLO confidence threshold
     )
