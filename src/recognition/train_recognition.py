@@ -9,6 +9,7 @@ import cv2
 import os
 from tqdm import tqdm
 import matplotlib.pyplot as plt
+from ultralytics import YOLO
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).parent.parent.parent
@@ -72,67 +73,98 @@ def extract_characters_from_clustering_results(
     return characters, cluster_labels
 
 
+def extract_real_labeled_crops(
+    yolo_model_path, dataset_path, char_to_idx, max_per_class=20
+):
+    yolo_model = YOLO(yolo_model_path)
+    labeled_images = []
+    labeled_targets = []
+    class_counts = {k: 0 for k in char_to_idx}
+
+    labels_dir = Path(dataset_path) / "train" / "labels"
+    images_dir = Path(dataset_path) / "train" / "images"
+
+    for label_file in labels_dir.glob("*.json"):
+        with open(label_file, "r") as f:
+            data = json.load(f)
+        if "expression" not in data or data["expression"] is None:
+            continue
+        expr = data["expression"]
+        img_name = label_file.stem + ".png"
+        img_path = images_dir / img_name
+        if not img_path.exists():
+            continue
+
+        # Detect characters
+        results = yolo_model(str(img_path), conf=0.3, verbose=False)
+        img = cv2.imread(str(img_path))
+        img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+        # Sort detections left-to-right
+        detections = []
+        for r in results:
+            if r.boxes is not None:
+                for box in r.boxes:
+                    x1, y1, x2, y2 = box.xyxy[0].cpu().numpy().astype(int)
+                    detections.append({"bbox": [x1, y1, x2, y2]})
+        detections = sorted(detections, key=lambda d: d["bbox"][0])
+
+        # Align detections with expression (assumes 1-to-1, left-to-right)
+        for i, det in enumerate(detections):
+            if i >= len(expr):
+                break
+            char = expr[i]
+            if char not in char_to_idx:
+                continue
+            if class_counts[char] >= max_per_class:
+                continue
+            x1, y1, x2, y2 = det["bbox"]
+            crop = img_rgb[y1:y2, x1:x2]
+            labeled_images.append(crop)
+            labeled_targets.append(char_to_idx[char])
+            class_counts[char] += 1
+
+        # Stop if enough samples per class
+        if all(v >= max_per_class for v in class_counts.values()):
+            break
+
+    print("Collected real labeled samples per class:", class_counts)
+    return labeled_images, labeled_targets
+
+
 def create_manual_labeled_samples() -> Tuple[List[np.ndarray], List[int]]:
-    """
-    Create a small set of manually labeled samples for each character class
-    """
     print("Creating manual labeled samples...")
 
     images = []
     labels = []
 
-    # Character set with better font variations
-    characters = [
-        "0",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9",
-        "+",
-        "-",
-        "*",
-        "/",
-        "(",
-        ")",
-    ]
+    # Only synthesize these symbols
+    characters = ["+", "(", ")"]
     fonts = [
         cv2.FONT_HERSHEY_SIMPLEX,
         cv2.FONT_HERSHEY_DUPLEX,
         cv2.FONT_HERSHEY_COMPLEX,
     ]
 
-    for idx, char in enumerate(characters):
+    char_to_idx = CharacterClassifier().char_to_idx
+
+    for char in characters:
+        idx = char_to_idx[char]
         for font in fonts:
             for size_factor in [0.8, 1.0, 1.2]:
-                # Create character image
                 img = np.ones((64, 64, 3), dtype=np.uint8) * 255
-
                 font_scale = 1.5 * size_factor
                 thickness = 2
-
-                # Get text size
                 (text_width, text_height), baseline = cv2.getTextSize(
                     char, font, font_scale, thickness
                 )
-
-                # Center the text
                 x = (64 - text_width) // 2
                 y = (64 + text_height) // 2
-
-                # Draw text
                 cv2.putText(img, char, (x, y), font, font_scale, (0, 0, 0), thickness)
-
-                # Add slight rotation
                 if np.random.rand() > 0.5:
                     angle = np.random.uniform(-10, 10)
                     M = cv2.getRotationMatrix2D((32, 32), angle, 1.0)
                     img = cv2.warpAffine(img, M, (64, 64), borderValue=255)
-
                 images.append(img)
                 labels.append(idx)
 
@@ -199,10 +231,19 @@ def train_improved_model(
     labeled_images = []
     labeled_targets = []
 
-    # Add manual labeled samples
-    manual_images, manual_labels = create_manual_labeled_samples()
-    labeled_images.extend(manual_images)
-    labeled_targets.extend(manual_labels)
+    real_images, real_labels = extract_real_labeled_crops(
+        yolo_model_path=yolo_model_path,
+        dataset_path=dataset_path,
+        char_to_idx=CharacterClassifier().char_to_idx,
+        max_per_class=20,  #  as many as you want
+    )
+    labeled_images.extend(real_images)
+    labeled_targets.extend(real_labels)
+
+    # # (Optional) keep synthetic samples for operators/parentheses:
+    # manual_images, manual_labels = create_manual_labeled_samples()
+    # labeled_images.extend(manual_images)
+    # labeled_targets.extend(manual_labels)
 
     # Step 3: Load unlabeled data from clustering
     unlabeled_images = []
@@ -221,7 +262,7 @@ def train_improved_model(
 
         extractor = YOLOFeatureExtractor(yolo_model_path)
 
-        for split in ["train", "val"]:
+        for split in ["train", "valid"]:
             img_dir = Path(dataset_path) / split / "images"
             for img_path in list(img_dir.glob("*.png"))[:50]:
                 chars = extractor.extract_detected_characters(
@@ -259,7 +300,7 @@ def train_improved_model(
     # Step 5: Initialize and train model
     print("\nInitializing model...")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = CharacterClassifier(num_classes=16, pretrained=True)
+    model = CharacterClassifier(num_classes=16, pretrained=False)
     trainer = SemiSupervisedTrainer(model, device)
 
     print("\nStarting semi-supervised training...")

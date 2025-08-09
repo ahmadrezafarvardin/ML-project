@@ -10,21 +10,15 @@ from pathlib import Path
 
 
 class CharacterClassifier(nn.Module):
-    """
-    ResNet18-based character classifier for mathematical expressions
-    """
+    def __init__(
+        self,
+        num_classes=16,
+        pretrained=False,
+        pretrained_hoda_path="src/models/resnet50_model_gpu.pth",
+        # to use pretrained persian weights set: "src/models/resnet50_model_gpu.pth" else None
+    ):
+        super().__init__()
 
-    def __init__(self, num_classes=16, pretrained=True):
-        """
-        Initialize character classifier
-
-        Args:
-            num_classes: Number of character classes (0-9, +, -, *, /, (, ))
-            pretrained: Use pretrained ResNet18 weights
-        """
-        super(CharacterClassifier, self).__init__()
-
-        # Character mapping
         self.char_to_idx = {
             "0": 0,
             "1": 1,
@@ -38,30 +32,36 @@ class CharacterClassifier(nn.Module):
             "9": 9,
             "+": 10,
             "-": 11,
-            "*": 12,
+            "x": 12,
             "/": 13,
             "(": 14,
             ")": 15,
         }
         self.idx_to_char = {v: k for k, v in self.char_to_idx.items()}
 
-        # Load pretrained ResNet18
-        self.backbone = models.resnet18(pretrained=pretrained)
-
-        # Modify first conv layer to accept grayscale images
+        # Use ResNet-50
+        self.backbone = models.resnet50(pretrained=False)
+        num_features = self.backbone.fc.in_features
         self.backbone.conv1 = nn.Conv2d(
             1, 64, kernel_size=7, stride=2, padding=3, bias=False
         )
-
-        # Replace final FC layer
-        num_features = self.backbone.fc.in_features
         self.backbone.fc = nn.Linear(num_features, num_classes)
 
-        # Image preprocessing
+        # Load Hoda weights if provided
+        if pretrained_hoda_path is not None:
+            state_dict = torch.load(pretrained_hoda_path, map_location="cpu")
+            # Remove the final layer weights if shape mismatch
+            state_dict = {k: v for k, v in state_dict.items() if not k.startswith("fc")}
+            # Remove conv1 weights if shape mismatch
+            state_dict = {
+                k: v for k, v in state_dict.items() if not k.startswith("conv1")
+            }
+            self.backbone.load_state_dict(state_dict, strict=False)
+        # Preprocessing: match Hoda (32x32, grayscale)
         self.transform = transforms.Compose(
             [
                 transforms.ToPILImage(),
-                transforms.Resize((64, 64)),
+                transforms.Resize((32, 32)),
                 transforms.Grayscale(),
                 transforms.ToTensor(),
                 transforms.Normalize(mean=[0.5], std=[0.5]),
@@ -72,7 +72,6 @@ class CharacterClassifier(nn.Module):
         return self.backbone(x)
 
     def preprocess_image(self, image):
-        """Preprocess character image for classification"""
         if isinstance(image, np.ndarray):
             return self.transform(image)
         return image
