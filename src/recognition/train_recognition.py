@@ -1,4 +1,4 @@
-# src/recognition/train_recognition_improved.py
+# src/recognition/train_recognition.py
 import sys
 from pathlib import Path
 import torch
@@ -29,7 +29,7 @@ def verify_yolo_model(yolo_model_path):
     model = YOLO(yolo_model_path)
 
     # Test on a sample image
-    test_img = "dataset/val/images/391.png"
+    test_img = "dataset/valid/images/391.png"
     if Path(test_img).exists():
         results = model(test_img, verbose=False)
         for r in results:
@@ -179,8 +179,8 @@ def train_improved_model(
     if not yolo_model_path:
         # Try to find character detection YOLO model
         possible_paths = [
-            "results/yolo_runs/detect/character_detection/weights/best.pt",
-            "results/yolo_runs/detect/character_detection/weights/last.pt",
+            "results/yolo/yolo_runs/detect/character_detection2/weights/best.pt",
+            "results/yolo/yolo_runs/detect/character_detection2/weights/last.pt",
             "src/models/yolo/character_detection_best.pt",
         ]
 
@@ -276,7 +276,7 @@ def train_improved_model(
     )
 
     # Step 6: Save model
-    model_path = Path(output_dir) / "character_classifier_improved.pth"
+    model_path = Path(output_dir) / "character_classifier.pth"
     torch.save(
         {
             "model_state_dict": model.state_dict(),
@@ -376,7 +376,7 @@ if __name__ == "__main__":
     parser.add_argument("--yolo-model", default=None, help="YOLO model path")
     parser.add_argument(
         "--clustering",
-        default="results/clustering_complete",
+        default="results/clustering/clustering_complete",
         help="Clustering results directory",
     )
     parser.add_argument("--epochs", type=int, default=100, help="Training epochs")

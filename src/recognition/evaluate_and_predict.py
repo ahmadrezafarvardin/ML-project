@@ -7,6 +7,7 @@ import numpy as np
 import cv2
 from tqdm import tqdm
 import csv
+import os
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).parent.parent.parent
@@ -18,10 +19,10 @@ from ultralytics import YOLO
 
 
 def evaluate_on_validation(
-    model_path="results/recognition/character_classifier_improved.pth",
-    yolo_model_path="results/yolo_runs/detect/character_detection2/weights/best.pt",
+    model_path="results/recognition/character_classifier.pth",
+    yolo_model_path="results/yolo/yolo_runs/detect/character_detection2/weights/best.pt",
     dataset_path="dataset",
-    output_dir="results/recognition",
+    output_dir="results/recognition/evaluate_and_predict",
 ):
     """Evaluate the trained model on validation expressions"""
 
@@ -43,7 +44,7 @@ def evaluate_on_validation(
 
     # Load validation expressions
     val_expressions = {}
-    val_labels_dir = Path(dataset_path) / "val" / "labels"
+    val_labels_dir = Path(dataset_path) / "valid" / "labels"
 
     for label_file in val_labels_dir.glob("*.json"):
         with open(label_file, "r") as f:
@@ -62,7 +63,7 @@ def evaluate_on_validation(
         predictions = {}
 
         for img_name in tqdm(val_expressions, desc=f"Conf={conf_threshold}"):
-            img_path = Path(dataset_path) / "val" / "images" / img_name
+            img_path = Path(dataset_path) / "valid" / "images" / img_name
             if img_path.exists():
                 pred_expr = recognizer.recognize_expression(
                     str(img_path), conf_threshold=conf_threshold
@@ -87,7 +88,7 @@ def evaluate_on_validation(
     sample_results = []
 
     for i, img_name in enumerate(tqdm(val_expressions, desc="Final evaluation")):
-        img_path = Path(dataset_path) / "val" / "images" / img_name
+        img_path = Path(dataset_path) / "valid" / "images" / img_name
         if img_path.exists():
             pred_expr = recognizer.recognize_expression(
                 str(img_path), conf_threshold=best_threshold
@@ -121,6 +122,8 @@ def evaluate_on_validation(
         "predictions": final_predictions,
     }
 
+    os.makedirs(Path(output_dir), exist_ok=True)
+
     with open(Path(output_dir) / "validation_results_final.json", "w") as f:
         json.dump(results, f, indent=2)
 
@@ -128,10 +131,10 @@ def evaluate_on_validation(
 
 
 def generate_test_predictions(
-    model_path="results/recognition/character_classifier_improved.pth",
-    yolo_model_path="results/yolo_runs/detect/character_detection2/weights/best.pt",
+    model_path="results/recognition/character_classifier.pth",
+    yolo_model_path="results/yolo/yolo_runs/detect/character_detection2/weights/best.pt",
     test_dir="dataset/test/images",
-    output_file="expression_predictions.csv",
+    output_file="results/recognition/evaluate_and_predict/expression_predictions.csv",
     conf_threshold=0.5,
 ):
     """Generate predictions for test set"""
@@ -187,8 +190,8 @@ def generate_test_predictions(
 
 
 def visualize_expression_recognition(
-    model_path="results/recognition/character_classifier_improved.pth",
-    yolo_model_path="results/yolo_runs/detect/character_detection2/weights/best.pt",
+    model_path="results/recognition/character_classifier.pth",
+    yolo_model_path="results/yolo/yolo_runs/detect/character_detection2/weights/best.pt",
     dataset_path="dataset",
     num_samples=5,
 ):
@@ -209,7 +212,7 @@ def visualize_expression_recognition(
     yolo_model = YOLO(yolo_model_path)
 
     # Get sample images
-    val_dir = Path(dataset_path) / "val" / "images"
+    val_dir = Path(dataset_path) / "valid" / "images"
     sample_images = list(val_dir.glob("*.png"))[:num_samples]
 
     fig, axes = plt.subplots(num_samples, 1, figsize=(15, 4 * num_samples))
@@ -280,7 +283,7 @@ def visualize_expression_recognition(
 
     plt.tight_layout()
     plt.savefig(
-        "results/recognition/expression_recognition_demo.png",
+        "results/recognition//evaluate_and_predict/expression_recognition_demo.png",
         dpi=150,
         bbox_inches="tight",
     )
@@ -301,11 +304,11 @@ if __name__ == "__main__":
         "--visualize", action="store_true", help="Visualize recognition"
     )
     parser.add_argument(
-        "--model", default="results/recognition/character_classifier_improved.pth"
+        "--model", default="results/recognition/character_classifier.pth"
     )
     parser.add_argument(
         "--yolo",
-        default="results/yolo_runs/detect/character_detection2/weights/best.pt",
+        default="results/yolo/yolo_runs/detect/character_detection2/weights/best.pt",
     )
     parser.add_argument("--output", default="expression_predictions.csv")
 
