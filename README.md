@@ -1,12 +1,4 @@
-<<<<<<< HEAD
-Absolutely! Here’s a **README.md** template for your character models project, tailored to your workflow and competition requirements:
-
----
-
-# Character models
-=======
 # Character Localization
->>>>>>> a771135192d6986efe8ac0b3aa28e7cf79a06e3c
 
 This project implements a deep learning pipeline for **character models** in handwritten math images. The goal is to detect and localize all character bounding boxes in each image, as required for the competition.
 

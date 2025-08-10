@@ -13,6 +13,7 @@ dataset/
 dataset_yolo/
 results/
 checkpoints/
+dataset_extended/
 
 # OS files
 .DS_Store
