@@ -102,17 +102,31 @@ class ExpressionRecognizerTTA(ExpressionRecognizer):
 
         for img_path in tqdm(test_images):
             try:
+                # Extract image ID from filename
+                image_id = int(img_path.stem)
+
                 expression = self.recognize_with_tta(img_path)
                 expression = self.post_process(expression)
 
-                predictions.append({"image": img_path.name, "expression": expression})
+                # Convert x to * for multiplication
+                expression = expression.replace("x", "*")
+
+                predictions.append({"image_id": image_id, "expression": expression})
             except Exception as e:
                 print(f"Error processing {img_path.name}: {e}")
-                predictions.append({"image": img_path.name, "expression": "0"})
+                try:
+                    image_id = int(img_path.stem)
+                except:
+                    image_id = 0
+
+                predictions.append({"image_id": image_id, "expression": "0"})
+
+        # Sort by image_id
+        predictions.sort(key=lambda x: x["image_id"])
 
         # Save predictions
         with open(output_file, "w", newline="") as f:
-            writer = csv.DictWriter(f, fieldnames=["image", "expression"])
+            writer = csv.DictWriter(f, fieldnames=["image_id", "expression"])
             writer.writeheader()
             writer.writerows(predictions)
 

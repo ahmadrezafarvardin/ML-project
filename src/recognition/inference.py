@@ -78,6 +78,40 @@ class ExpressionRecognizer:
 
         return expression
 
+    # def process_test_set(self, test_dir, output_file):
+    #     """Process entire test set and save predictions"""
+    #     test_dir = Path(test_dir)
+    #     predictions = []
+
+    #     # Get all test images
+    #     test_images = sorted(test_dir.glob("*.png"))
+
+    #     print(f"Processing {len(test_images)} test images...")
+
+    #     for img_path in tqdm(test_images):
+    #         try:
+    #             expression = self.recognize(img_path)
+
+    #             # Post-process if needed
+    #             expression = self.post_process(expression)
+
+    #             predictions.append({"image": img_path.name, "expression": expression})
+    #         except Exception as e:
+    #             print(f"Error processing {img_path.name}: {e}")
+    #             predictions.append(
+    #                 {"image": img_path.name, "expression": "0"}  # Default fallback
+    #             )
+
+    #     # Save predictions
+    #     with open(output_file, "w", newline="") as f:
+    #         writer = csv.DictWriter(f, fieldnames=["image", "expression"])
+    #         writer.writeheader()
+    #         writer.writerows(predictions)
+
+    #     print(f"Saved predictions to {output_file}")
+
+    #     return predictions
+
     def process_test_set(self, test_dir, output_file):
         """Process entire test set and save predictions"""
         test_dir = Path(test_dir)
@@ -90,21 +124,36 @@ class ExpressionRecognizer:
 
         for img_path in tqdm(test_images):
             try:
+                # Extract image ID from filename (e.g., "123.png" -> 123)
+                image_id = int(img_path.stem)
+
                 expression = self.recognize(img_path)
 
                 # Post-process if needed
                 expression = self.post_process(expression)
 
-                predictions.append({"image": img_path.name, "expression": expression})
+                # Fix: Use * instead of x for multiplication
+                expression = expression.replace("x", "*")
+
+                predictions.append({"image_id": image_id, "expression": expression})
             except Exception as e:
                 print(f"Error processing {img_path.name}: {e}")
+                # Extract image ID even on error
+                try:
+                    image_id = int(img_path.stem)
+                except:
+                    image_id = 0
+
                 predictions.append(
-                    {"image": img_path.name, "expression": "0"}  # Default fallback
+                    {"image_id": image_id, "expression": "0"}  # Default fallback
                 )
+
+        # Sort by image_id to ensure correct order
+        predictions.sort(key=lambda x: x["image_id"])
 
         # Save predictions
         with open(output_file, "w", newline="") as f:
-            writer = csv.DictWriter(f, fieldnames=["image", "expression"])
+            writer = csv.DictWriter(f, fieldnames=["image_id", "expression"])
             writer.writeheader()
             writer.writerows(predictions)
 
@@ -119,7 +168,7 @@ class ExpressionRecognizer:
         expression = "".join(c for c in expression if c in valid_chars)
 
         # Fix common errors
-        expression = expression.replace("*", "x")
+        expression = expression.replace("x", "*")
 
         # Balance parentheses
         open_count = expression.count("(")
@@ -134,52 +183,6 @@ class ExpressionRecognizer:
             expression = "0"
 
         return expression
-    # def post_process(self, expression):
-    #     """Post-process recognized expression with pattern-based corrections"""
-    #     # Remove any invalid characters
-    #     valid_chars = set("0123456789+-x/()")
-    #     expression = "".join(c for c in expression if c in valid_chars)
-
-    #     # Fix common OCR errors based on patterns
-    #     import re
-
-    #     # Fix doubled operators
-    #     expression = re.sub(r"(\+\+|--|\xx|//)", lambda m: m.group(0)[0], expression)
-
-    #     # Fix operator at start (except minus)
-    #     if expression and expression[0] in "+x/":
-    #         expression = expression[1:]
-
-    #     # Fix operator at end
-    #     if expression and expression[-1] in "+-x/":
-    #         expression = expression[:-1]
-
-    #     # Fix patterns like "1/27" that should be "14/7"
-    #     expression = re.sub(r"(\d)/(\d)(\d)", r"\1\3/\2", expression)
-
-    #     # Balance parentheses
-    #     open_count = expression.count("(")
-    #     close_count = expression.count(")")
-    #     if open_count > close_count:
-    #         expression += ")" * (open_count - close_count)
-    #     elif close_count > open_count:
-    #         # Remove extra closing parentheses or add opening ones
-    #         if close_count - open_count == 1:
-    #             # Try to remove one ) that seems wrong
-    #             expression = expression.replace(")-", "-", 1)
-    #         else:
-    #             expression = "(" * (close_count - open_count) + expression
-
-    #     # Fix invalid patterns like "45/(15)-5)" -> "45/(15-5)"
-    #     expression = re.sub(
-    #         r"KATEX_INLINE_CLOSE\-(\d+)KATEX_INLINE_CLOSE", r"-\1)", expression
-    #     )
-
-    #     # Default to '0' if empty
-    #     if not expression:
-    #         expression = "0"
-
-    #     return expression
 
 
 def evaluate_on_validation(model_path, dataset_path):
