@@ -173,32 +173,6 @@ class CascadeROIHeads(nn.Module):
         normalized[:, 4] = proposals[:, 4] / 800 * feature_shape[0]  # y2
         return normalized
 
-    # def compute_loss(self, class_logits, pred_boxes, proposals, targets, stage):
-    #     """Compute classification and regression losses for ROI heads"""
-    #     # Get IoU threshold for this stage
-    #     iou_threshold = self.stage_iou_thresholds[stage]
-
-    #     # Match proposals to ground truth
-    #     matched_idxs, labels, regression_targets = self.match_proposals_to_targets(
-    #         proposals, targets, iou_threshold
-    #     )
-
-    #     # Classification loss
-    #     classification_loss = F.cross_entropy(class_logits, labels)
-
-    #     # Regression loss (only for positive samples)
-    #     positive_mask = labels > 0
-    #     if positive_mask.sum() > 0:
-    #         regression_loss = F.smooth_l1_loss(
-    #             pred_boxes[positive_mask], regression_targets[positive_mask]
-    #         )
-    #     else:
-    #         regression_loss = torch.tensor(0.0, device=class_logits.device)
-
-    #     return {
-    #         "classification_loss": classification_loss * self.stage_loss_weights[stage],
-    #         "bbox_regression_loss": regression_loss * self.stage_loss_weights[stage],
-    #     }
     def compute_loss(self, class_logits, pred_boxes, proposals, targets, stage):
         """Compute classification and regression losses for ROI heads"""
         # Get IoU threshold for this stage
@@ -208,16 +182,6 @@ class CascadeROIHeads(nn.Module):
         matched_idxs, labels, regression_targets = self.match_proposals_to_targets(
             proposals, targets, iou_threshold
         )
-
-        # # Debug: print statistics
-        # num_positive = (labels > 0).sum().item()
-        # num_negative = (labels == 0).sum().item()
-        # total_samples = len(labels)
-
-        # if stage == 0:  # Only print for first stage to avoid clutter
-        #     print(
-        #         f"Stage {stage} - Positive: {num_positive}, Negative: {num_negative}, Total: {total_samples}"
-        #     )
 
         # Classification loss
         classification_loss = F.cross_entropy(class_logits, labels)
