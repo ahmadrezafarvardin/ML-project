@@ -1,0 +1,64 @@
+# requirements.txt
+# Mathematical Expression Recognition System Dependencies
+
+# Core Deep Learning Frameworks
+torch>=2.0.0
+torchvision>=0.15.0
+tensorflow>=2.12.0  # For some feature extraction methods
+ultralytics>=8.0.0  # YOLO v8
+
+# Computer Vision & Image Processing
+opencv-python>=4.7.0
+Pillow>=9.5.0
+scikit-image>=0.20.0
+
+# Data Science & Machine Learning
+numpy>=1.24.0
+pandas>=2.0.0
+scikit-learn>=1.2.0
+scipy>=1.10.0
+
+# Visualization & Plotting
+matplotlib>=3.7.0
+seaborn>=0.12.0
+plotly>=5.14.0
+
+# Natural Language Processing & Text
+python-Levenshtein>=0.20.0
+editdistance>=0.6.0
+
+# Progress Bars & Logging
+tqdm>=4.65.0
+wandb>=0.15.0  # Optional: for experiment tracking
+
+# Clustering & Feature Extraction
+faiss-cpu>=1.7.3  # Use faiss-gpu for GPU support
+
+# Data Handling & Utilities
+pyyaml>=6.0
+jsonschema>=4.17.0
+
+# Jupyter & Development Tools
+notebook>=6.5.0
+
+# System & Performance
+psutil>=5.9.0
+py-cpuinfo>=9.0.0
+
+# Additional ML Tools
+xgboost>=1.7.0  # For ensemble methods
+lightgbm>=3.3.0  # Alternative gradient boosting
+
+# Specific Version Constraints for Compatibility
+# Pin these versions if you encounter issues
+# numpy==1.24.3  # Some libraries may require specific numpy version
+# protobuf==3.20.3  # For tensorflow compatibility
+
+# CUDA-specific (uncomment based on your CUDA version)
+# torch==2.0.0+cu118  # For CUDA 11.8
+# torchvision==0.15.0+cu118
+
+# Optional Advanced Features
+# transformers>=4.28.0  # For transformer-based models
+# timm>=0.9.0  # PyTorch image models
+# segmentation-models-pytorch>=0.3.0  # Advanced segmentation

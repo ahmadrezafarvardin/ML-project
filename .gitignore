@@ -28,7 +28,7 @@ Thumbs.db
 *.pt
 *.pth
 *.onnx
-*.txt
 *.csv
 *.png
+
 
